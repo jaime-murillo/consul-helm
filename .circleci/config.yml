@@ -22,7 +22,7 @@ jobs:
           command: bats ./test/unit
   unit-helm3:
     docker:
-      - image: hashicorpdev/consul-helm-test:0.5.0
+      - image: hashicorpdev/consul-helm-test:0.6.0
 
     steps:
       - checkout
@@ -91,7 +91,7 @@ jobs:
       - store_artifacts:
           path: /tmp/test-results
 
-  acceptance:
+  acceptance-gke-1-15:
     environment:
       - TEST_RESULTS: /tmp/test-results
     docker:
@@ -153,6 +153,57 @@ jobs:
             terraform destroy -var project=${CLOUDSDK_CORE_PROJECT} -auto-approve
           when: always
 
+  acceptance-openshift:
+    environment:
+      - TEST_RESULTS: /tmp/test-results
+    docker:
+      # This image is build from test/docker/Test.dockerfile
+      - image: hashicorpdev/consul-helm-test:0.6.0
+
+    steps:
+      - checkout
+
+      - run:
+          name: terraform init & apply
+          working_directory: test/terraform/openshift
+          command: |
+            terraform init
+
+            export ARM_CLIENT_ID
+            export ARM_CLIENT_SECRET
+            export ARM_SUBSCRIPTION_ID
+            export ARM_TENANT_ID
+            terraform apply -auto-approve
+
+      # Restore go module cache if there is one
+      - restore_cache:
+          keys:
+            - consul-helm-modcache-v1-{{ checksum "test/acceptance/go.mod" }}
+
+      - run: mkdir -p $TEST_RESULTS
+
+      - run:
+          name: Run acceptance tests
+          working_directory: test/acceptance/tests
+          no_output_timeout: 30m
+          command: |
+            gotestsum --junitfile "$TEST_RESULTS/gotestsum-report.xml" -- ./... -p 1 -timeout 20m -failfast \
+              -enable-openshift \
+              -debug-directory="$TEST_RESULTS/debug" \
+              -consul-k8s-image=hashicorpdev/consul-k8s:latest
+
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/test-results
+
+      - run:
+          name: terraform destroy
+          working_directory: test/terraform/openshift
+          command: |
+            terraform destroy -auto-approve
+          when: always
+
   update-helm-charts-index:
     docker:
       - image: circleci/golang:latest
@@ -191,11 +242,20 @@ workflows:
             - go-fmt-and-vet
       - unit-helm2
       - unit-helm3
-      - acceptance:
+#      - acceptance-gke-1.15:
+#          requires:
+#            - unit-helm2
+#            - unit-helm3
+#            - unit-acceptance-framework
+      - acceptance-openshift:
           requires:
             - unit-helm2
             - unit-helm3
             - unit-acceptance-framework
+# todo: uncomment before merging the PR
+#          filters:
+#            branches:
+#              only: master
   update-helm-charts-index:
     jobs:
       - update-helm-charts-index:
