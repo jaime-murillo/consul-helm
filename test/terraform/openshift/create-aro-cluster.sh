@@ -23,7 +23,7 @@ kubePassword=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" |
 openshiftVersion=$(az aro show -g "$resource_group" -n "$cluster_name" --query clusterProfile.version -o tsv)
 
 echo "Installing Openshift CLI version $openshiftVersion"
-curl -sSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/"$openshiftVersion"/openshift-client-linux.tar.gz -o /tmp/oc.tar.gz && \
+curl -sSL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$openshiftVersion/openshift-client-linux.tar.gz" -o /tmp/oc.tar.gz && \
   tar -zxvf /tmp/oc.tar.gz -C .
 
 echo "Logging in"
