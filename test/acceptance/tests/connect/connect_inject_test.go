@@ -36,6 +36,7 @@ func TestConnectInject(t *testing.T) {
 				"global.tls.enabled":           strconv.FormatBool(c.secure),
 				"global.tls.enableAutoEncrypt": strconv.FormatBool(c.autoEncrypt),
 				"global.acls.manageSystemACLs": strconv.FormatBool(c.secure),
+				"global.image":                 "hashicorpdev/consul",
 			}
 
 			releaseName := helpers.RandomName()
