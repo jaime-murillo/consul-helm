@@ -3,7 +3,9 @@
 set -e
 
 resource_group=$1
+echo "$resource_group"
 cluster_name=$2
+echo "$cluster_name"
 vnet_name=$3
 
 echo "Creating Azure Red Hat OpenShift cluster"
@@ -20,6 +22,6 @@ kubeUser=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" | jq 
 kubePassword=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" | jq -r .kubeadminPassword)
 
 echo "Logging in"
-oc login "$apiServer" -u "$kubeUser" -p "$kubePassword"
+oc login --loglevel 6 "$apiServer" -u "$kubeUser" -p "$kubePassword"
 echo "Creating the 'consul' project"
 oc new-project consul

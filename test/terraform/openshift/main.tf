@@ -54,7 +54,6 @@ resource "null_resource" "aro" {
 
   provisioner "local-exec" {
     when       = destroy
-    on_failure = continue
-    command    = "az aro delete --resource-group ${azurerm_resource_group.test.name} --name ${local.random_name} --yes"
+    command    = "az aro --debug delete --resource-group ${azurerm_resource_group.test.name} --name ${local.random_name} --yes"
   }
 }
