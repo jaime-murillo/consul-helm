@@ -20,8 +20,13 @@ az aro create \
 apiServer=$(az aro show -g "$resource_group" -n "$cluster_name" --query apiserverProfile.url -o tsv)
 kubeUser=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" | jq -r .kubeadminUsername)
 kubePassword=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" | jq -r .kubeadminPassword)
+openshiftVersion=$(az aro show -g "$resource_group" -n "$cluster_name" --query clusterProfile.version -o tsv)
+
+echo "Installing Openshift CLI version $openshiftVersion"
+curl -sSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/"$openshiftVersion"/openshift-client-linux.tar.gz -o /tmp/oc.tar.gz && \
+  tar -zxvf /tmp/oc.tar.gz -C .
 
 echo "Logging in"
-oc login --loglevel 10 "$apiServer" -u "$kubeUser" -p "$kubePassword"
+./oc login --loglevel 10 "$apiServer" -u "$kubeUser" -p "$kubePassword"
 echo "Creating the 'consul' project"
-oc new-project consul
+./oc new-project consul
