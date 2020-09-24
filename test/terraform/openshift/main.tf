@@ -42,7 +42,6 @@ resource "azurerm_subnet" "worker-subnet" {
 
 resource "null_resource" "aro" {
   triggers = {
-    vnet = azurerm_virtual_network.test.id
     master_subnet = azurerm_subnet.master-subnet.id
     worker_subnet = azurerm_subnet.worker-subnet.id
   }

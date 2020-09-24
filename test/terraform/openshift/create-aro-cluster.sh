@@ -21,4 +21,5 @@ kubePassword=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" |
 
 echo "Logging in"
 oc login "$apiServer" -u "$kubeUser" -p "$kubePassword"
+echo "Creating the 'consul' project"
 oc new-project consul
