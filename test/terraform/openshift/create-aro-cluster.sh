@@ -27,6 +27,6 @@ curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$openshiftVer
   tar -zxvf oc.tar.gz
 
 echo "Logging in"
-./oc login --loglevel 10 "$apiServer" -u "$kubeUser" -p "$kubePassword"
+./oc login "$apiServer" -u "$kubeUser" -p "$kubePassword"
 echo "Creating the 'consul' project"
 ./oc new-project consul
