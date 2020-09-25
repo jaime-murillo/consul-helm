@@ -20,11 +20,11 @@ az aro create \
 apiServer=$(az aro show -g "$resource_group" -n "$cluster_name" --query apiserverProfile.url -o tsv)
 kubeUser=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" | jq -r .kubeadminUsername)
 kubePassword=$(az aro list-credentials -g "$resource_group" -n "$cluster_name" | jq -r .kubeadminPassword)
-openshiftVersion=$(az aro show -g "$resource_group" -n "$cluster_name" --query clusterProfile.version -o tsv)
+#openshiftVersion=$(az aro show -g "$resource_group" -n "$cluster_name" --query clusterProfile.version -o tsv)
 
-echo "Installing Openshift CLI version $openshiftVersion"
-curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$openshiftVersion/openshift-client-linux.tar.gz" -o oc.tar.gz && \
-  tar -zxvf oc.tar.gz
+#echo "Installing Openshift CLI version $openshiftVersion"
+#curl -L "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$openshiftVersion/openshift-client-linux.tar.gz" -o oc.tar.gz && \
+#  tar -zxvf oc.tar.gz
 
 echo "Logging in"
 ./oc login "$apiServer" -u "$kubeUser" -p "$kubePassword"

@@ -4,6 +4,6 @@ variable "region" {
 }
 
 variable "resource_prefix" {
-  default = "consul-helm-test-"
+  default     = "consul-helm-test-"
   description = "A prefix to use for all resorces."
 }

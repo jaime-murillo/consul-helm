@@ -24,12 +24,12 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "master-subnet" {
-  name                 = "master-subnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
+  name                                          = "master-subnet"
+  resource_group_name                           = azurerm_resource_group.test.name
+  virtual_network_name                          = azurerm_virtual_network.test.name
+  address_prefixes                              = ["10.0.0.0/23"]
   enforce_private_link_service_network_policies = true
-  service_endpoints = ["Microsoft.ContainerRegistry"]
+  service_endpoints                             = ["Microsoft.ContainerRegistry"]
 }
 
 resource "azurerm_subnet" "worker-subnet" {
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "worker-subnet" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/23"]
-  service_endpoints = ["Microsoft.ContainerRegistry"]
+  service_endpoints    = ["Microsoft.ContainerRegistry"]
 }
 
 resource "null_resource" "aro" {
@@ -49,11 +49,30 @@ resource "null_resource" "aro" {
   # This is a horrible hack until terraform Azure provider officially supports this resource
   # https://github.com/terraform-providers/terraform-provider-azurerm/issues/3614.
   provisioner "local-exec" {
-    command = "./create-aro-cluster.sh ${azurerm_resource_group.test.name} ${local.random_name} ${azurerm_virtual_network.test.name}"
+    command = <<EOF
+    az aro create \
+      --resource-group ${azurerm_resource_group.test.name} \
+      --name ${local.random_name} \
+      --vnet ${azurerm_virtual_network.test.name} \
+      --vnet-resource-group ${azurerm_resource_group.test.name} \
+      --master-subnet master-subnet \
+      --worker-subnet worker-subnet
+    EOF
   }
 
   provisioner "local-exec" {
-    when       = destroy
-    command    = "az aro delete --resource-group ${azurerm_resource_group.test.name} --name ${local.random_name} --yes"
+    command = <<EOF
+    apiServer=$(az aro show -g ${azurerm_resource_group.test.name} -n ${local.random_name} --query apiserverProfile.url -o tsv)
+    kubeUser=$(az aro list-credentials -g ${azurerm_resource_group.test.name} -n ${local.random_name} | jq -r .kubeadminUsername)
+    kubePassword=$(az aro list-credentials -g ${azurerm_resource_group.test.name} -n ${local.random_name} | jq -r .kubeadminPassword)
+
+    oc login --loglevel 10 "$apiServer" -u "$kubeUser" -p "$kubePassword"
+    oc new-project consul
+    EOF
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "az aro delete --resource-group ${azurerm_resource_group.test.name} --name ${local.random_name} --yes"
   }
 }
