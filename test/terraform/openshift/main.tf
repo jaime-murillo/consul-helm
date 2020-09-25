@@ -66,6 +66,7 @@ resource "null_resource" "aro" {
     kubeUser=$(az aro list-credentials -g ${azurerm_resource_group.test.name} -n ${local.random_name} | jq -r .kubeadminUsername)
     kubePassword=$(az aro list-credentials -g ${azurerm_resource_group.test.name} -n ${local.random_name} | jq -r .kubeadminPassword)
 
+    sleep 10
     oc login --loglevel 10 "$apiServer" -u "$kubeUser" -p "$kubePassword"
     oc new-project consul
     EOF
