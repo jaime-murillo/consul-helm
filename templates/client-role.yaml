@@ -32,7 +32,7 @@ rules:
   - apiGroups: ["security.openshift.io"]
     resources: ["securitycontextconstraints"]
     resourceNames:
-      - hostnetwork
+      - {{ template "consul.fullname" . }}-client
     verbs:
       - use
 {{- end}}
